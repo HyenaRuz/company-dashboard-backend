@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: company-dashboard-postgres
+    restart: always
+    env_file:
+      - ./.env
+    ports:
+      - $POSTGRES_PORT:5432
+    volumes:
+      - ./volumes/pgdata:/var/lib/postgresql/data
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: company-dashboard-api
+    env_file:
+      - ./.env
+    ports:
+      - $PORT:$PORT
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+volumes:
+  postgres:
+    driver: local
