@@ -9,6 +9,7 @@ import { Request } from 'express';
 type TUserFromToken = {
   id: number;
   username: string;
+  role: string;
   refreshToken?: string;
 };
 

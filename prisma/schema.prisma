@@ -22,7 +22,7 @@ model Account {
 }
 
 model Company {
-  id                        String        @id @default(uuid())
+  id                        Int           @id() @default(autoincrement())
   createdAt                 DateTime      @default(now()) @db.Timestamptz(6)
   updatedAt                 DateTime      @updatedAt
   deletedAt                 DateTime?     @db.Timestamptz(6)
@@ -35,7 +35,7 @@ model Company {
 }
 
 model History {
-  id                        String        @id @default(uuid())
+  id                        Int           @id() @default(autoincrement())
   createdAt                 DateTime      @default(now()) @db.Timestamptz(6)
   updatedAt                 DateTime      @updatedAt
   deletedAt                 DateTime?     @db.Timestamptz(6)
