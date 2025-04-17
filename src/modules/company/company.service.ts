@@ -57,14 +57,29 @@ export class CompanyService {
   }
 
   public async deleteCompany(accountId: number, companyId: number) {
-    return this.prisma.company.delete({
-      where: { accountId, id: companyId },
+    const company = await this.prisma.company.findFirstOrThrow({
+      where: {
+        id: companyId,
+        accountId,
+        deletedAt: null,
+      },
+    });
+
+    if (!company) {
+      throw new BadRequestException('Company not found');
+    }
+
+    return this.prisma.company.update({
+      where: { id: company.id },
+      data: {
+        deletedAt: new Date(),
+      },
     });
   }
 
   public getCompanyById(companyId: number) {
     return this.prisma.company.findUnique({
-      where: { id: companyId },
+      where: { id: companyId, deletedAt: null },
     });
   }
 
@@ -86,8 +101,17 @@ export class CompanyService {
             contains: name,
           },
         }),
+        deletedAt: null,
       },
       orderBy: { [sortField]: sortDirection },
+    });
+  }
+
+  public async getTotalCompanyCount() {
+    return this.prisma.company.count({
+      where: {
+        deletedAt: null,
+      },
     });
   }
 }

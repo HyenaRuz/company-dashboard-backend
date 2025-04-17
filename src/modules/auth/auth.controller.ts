@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RefreshTokenGuard } from 'src/guards/refreshToken.guard';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { TRequest } from 'src/types/request.types';
+import { createUploadInterceptor } from '../helpers/upload.interceptor';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -12,7 +13,16 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
-  async signup(@Body() payload: SignupDto) {
+  @UseInterceptors(createUploadInterceptor('file', './uploads/avatars'))
+  async signup(
+    @Body() payload: SignupDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (file) {
+      const avatarUrl = `/uploads/avatars/${file.filename}`;
+      payload.avatarUrl = avatarUrl;
+    }
+
     return await this.authService.signup(payload);
   }
 
