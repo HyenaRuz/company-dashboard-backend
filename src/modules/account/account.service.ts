@@ -124,4 +124,11 @@ export class AccountService {
       },
     });
   }
+
+  public async checkEmail(email: string) {
+    const existingAccount = await this.prisma.account.findFirst({
+      where: { email },
+    });
+    return !!existingAccount;
+  }
 }

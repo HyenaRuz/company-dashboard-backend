@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Post,
   Put,
   Req,
   UploadedFile,
@@ -19,19 +20,20 @@ import { ERole } from 'src/enums/role.enum';
 import { UpdateAccountPasswordDto } from './dto/update-account-password.dto';
 import { createUploadInterceptor } from '../helpers/upload.interceptor';
 
-@UseGuards(AccessTokenGuard)
 @ApiTags('Account')
 @Controller('account')
 export class AccounController {
   constructor(private accountService: AccountService) {}
 
+  @UseGuards(AccessTokenGuard)
   @Get('/me')
   async getAccountById(@Req() req: TRequest) {
     return this.accountService.findAccountById(req.user.id);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Put('/me')
-  @UseInterceptors(createUploadInterceptor('file', './uploads/avatars'))
+  @UseInterceptors(createUploadInterceptor('avatar', './uploads/avatars'))
   async updateAccount(
     @Req() req: TRequest,
     @Body() body: UpdateAccountDto,
@@ -45,6 +47,7 @@ export class AccounController {
     return this.accountService.updateAccount(req.user.id, body);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Put('/me/password')
   async updateAccountPassword(
     @Req() req: TRequest,
@@ -53,6 +56,7 @@ export class AccounController {
     return this.accountService.updateAccountPassword(req.user.id, body);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Roles(ERole.SUPERADMIN)
   @Put('/role')
   async updateAccountRole(
@@ -62,9 +66,15 @@ export class AccounController {
     return this.accountService.updateAccount(req.user.id, body);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Roles(ERole.SUPERADMIN, ERole.ADMIN)
   @Get('/all-accounts')
   async getAllAccounts() {
     return this.accountService.findAllAccounts();
+  }
+
+  @Post('check-email')
+  async checkEmail(@Body() body: { email: string }) {
+    return this.accountService.checkEmail(body.email);
   }
 }

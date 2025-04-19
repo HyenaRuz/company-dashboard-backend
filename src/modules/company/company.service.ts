@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto copy';
 import { SearchCompanyDto } from './dto/serch-company.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CompanyService {
@@ -21,7 +22,7 @@ export class CompanyService {
       throw new NotFoundException('Account not found');
     }
 
-    return this.prisma.company.create({
+    return await this.prisma.company.create({
       data: {
         ...data,
         name: data.name.trim(),
@@ -53,7 +54,7 @@ export class CompanyService {
       data,
     });
 
-    return this.getCompanyById(company.id);
+    return await this.getCompanyById(company.id);
   }
 
   public async deleteCompany(accountId: number, companyId: number) {
@@ -69,7 +70,7 @@ export class CompanyService {
       throw new BadRequestException('Company not found');
     }
 
-    return this.prisma.company.update({
+    return await this.prisma.company.update({
       where: { id: company.id },
       data: {
         deletedAt: new Date(),
@@ -77,34 +78,75 @@ export class CompanyService {
     });
   }
 
-  public getCompanyById(companyId: number) {
-    return this.prisma.company.findUnique({
+  public async getCompanyById(companyId: number) {
+    return await this.prisma.company.findUnique({
       where: { id: companyId, deletedAt: null },
     });
   }
 
-  public searchCompany(params: SearchCompanyDto, accountId?: number) {
+  // public async searchCompany(params: SearchCompanyDto, accountId?: number) {
+  //   const { name, page, limit, sortDirection, sortField } = params || {};
+
+  //   const take = +limit;
+  //   const skip = (+page - 1) * take;
+
+  //   const where = {
+  //     ...(accountId && { accountId }),
+  //     ...(name && {
+  //       name: {
+  //         contains: name,
+  //         mode: 'insensitive',
+  //       },
+  //     }),
+  //     deletedAt: null,
+  //   };
+
+  //   const [companies, total] = await this.prisma.$transaction([
+  //     this.prisma.company.findMany({
+  //       take,
+  //       skip,
+  //       where,
+  //       orderBy: {
+  //         [sortField]: sortDirection,
+  //       },
+  //     }),
+  //     this.prisma.company.count({ where }),
+  //   ]);
+
+  //   return {
+  //     total,
+  //     companies,
+  //   };
+  // }
+
+  public async searchCompany(params: SearchCompanyDto, accountId?: number) {
     const { name, page, limit, sortDirection, sortField } = params || {};
 
     const take = +limit;
-    const skip = (page - 1) * take;
+    const skip = (+page - 1) * take;
 
-    return this.prisma.company.findMany({
-      take,
-      skip,
-      where: {
-        ...(accountId && {
-          accountId,
-        }),
-        ...(name && {
-          name: {
-            contains: name,
-          },
-        }),
-        deletedAt: null,
-      },
-      orderBy: { [sortField]: sortDirection },
-    });
+    const where: Prisma.CompanyWhereInput = {
+      ...(accountId && { accountId }),
+      ...(name && {
+        name: {
+          contains: name,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      }),
+      deletedAt: null,
+    };
+
+    const [companies, total] = await this.prisma.$transaction([
+      this.prisma.company.findMany({
+        take,
+        skip,
+        where,
+        orderBy: { [sortField]: sortDirection },
+      }),
+      this.prisma.company.count({ where }),
+    ]);
+
+    return [companies, total];
   }
 
   public async getTotalCompanyCount() {

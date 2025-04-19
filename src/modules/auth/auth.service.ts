@@ -13,7 +13,7 @@ import { AccountService } from '../account/account.service';
 import { ERole } from 'src/enums/role.enum';
 
 type TTokenPayload = {
-  accountId: number;
+  id: number;
   username: string;
   role: ERole;
 };
@@ -37,9 +37,9 @@ export class AuthService {
     private accountService: AccountService,
   ) {}
 
-  private getTokenPayload({ accountId, username, role }: TTokenPayload) {
+  private getTokenPayload({ id, username, role }: TTokenPayload) {
     return {
-      id: accountId,
+      id,
       username,
       role,
     };
@@ -73,21 +73,26 @@ export class AuthService {
     const account = await this.prisma.account.findUnique({
       where: { id: accountId },
     });
+
     if (!account) {
       throw new ForbiddenException('Access Denied');
     }
+
     const refreshTokenValid = await this.jwtService.verify(refreshToken, {
       secret: process.env.JWT_REFRESH_SECRET,
     });
+
     if (!refreshTokenValid) {
       throw new ForbiddenException('Access Denied');
     }
+
     const decoded = (await this.jwtService.decode(refreshToken)) as any;
     if (decoded.id !== accountId) {
       throw new ForbiddenException('Access Denied');
     }
+
     const accessToken = await this.getToken('access', {
-      accountId: account.id,
+      id: account.id,
       username: account.username,
       role: account.role as ERole,
     });
@@ -117,7 +122,7 @@ export class AuthService {
     });
 
     const tokens = await this.getTokensOnAuth({
-      accountId: newAccount.id,
+      id: newAccount.id,
       username: newAccount.username,
       role: newAccount.role as ERole,
     });
@@ -137,7 +142,7 @@ export class AuthService {
     }
 
     const tokens = await this.getTokensOnAuth({
-      accountId: existingAccount.id,
+      id: existingAccount.id,
       username: existingAccount.username,
       role: existingAccount.role as ERole,
     });

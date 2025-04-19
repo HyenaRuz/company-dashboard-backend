@@ -32,7 +32,7 @@ export class CompanyController {
   constructor(private companyService: CompanyService) {}
 
   @Post()
-  @UseInterceptors(createUploadInterceptor('file', './uploads/logo'))
+  @UseInterceptors(createUploadInterceptor('logo', './uploads/logo'))
   async create(
     @Req() req: TRequest,
     @Body() body: CreateCompanyDto,
@@ -47,7 +47,7 @@ export class CompanyController {
   }
 
   @Put(':id')
-  @UseInterceptors(createUploadInterceptor('file', './uploads/logo'))
+  @UseInterceptors(createUploadInterceptor('logo', './uploads/logo'))
   async updateCompany(
     @Req() req: TRequest,
     @Body() body: UpdateCompanyDto,
@@ -67,7 +67,7 @@ export class CompanyController {
     return this.companyService.deleteCompany(req.user.id, +id);
   }
 
-  @Get('/me')
+  @Get()
   async findCompaniesByCriteria(
     @Req() req: TRequest,
     @Query() params: SearchCompanyDto,
@@ -76,7 +76,7 @@ export class CompanyController {
   }
 
   @Roles(ERole.ADMIN, ERole.SUPERADMIN)
-  @Get()
+  @Get('/all')
   async findAllCompaniesByCriteria(@Query() params: SearchCompanyDto) {
     return this.companyService.searchCompany(params);
   }
