@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class SearchCompanyDto {
   @IsString()
@@ -23,4 +23,8 @@ export class SearchCompanyDto {
   @IsString()
   @IsOptional()
   sortDirection?: 'asc' | 'desc';
+
+  @IsOptional()
+  @IsBoolean()
+  allCompanies?: boolean;
 }

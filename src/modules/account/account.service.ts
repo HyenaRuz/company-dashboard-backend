@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ERole } from 'src/enums/role.enum';
@@ -6,6 +10,14 @@ import { UpdateAccountDto } from './dto/update-account.dto';
 import { UpdateAccountRoleDto } from './dto/update-account-role.dto';
 import { UpdateAccountPasswordDto } from './dto/update-account-password.dto';
 import argon from 'argon2';
+
+import * as fs from 'fs';
+import * as path from 'path';
+import { SearchAccountDto } from './dto/serch-account.dto';
+import {
+  pickRequiredFields,
+  UPDATE_ACCOUNT_REQUIRED_FIELDS,
+} from '../helpers/pickRequiredFields';
 
 @Injectable()
 export class AccountService {
@@ -35,8 +47,58 @@ export class AccountService {
     });
   }
 
-  public async findAllAccounts() {
-    return this.prisma.account.findMany();
+  public async findAllAccounts(params: SearchAccountDto) {
+    const { id, email, username, page, limit, sortDirection, sortField, role } =
+      params || {};
+
+    const take = +limit;
+    const skip = (+page - 1) * take;
+
+    const where: Prisma.AccountWhereInput = {
+      ...(id && { id }),
+      ...(email && {
+        email: {
+          contains: email,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      }),
+      ...(username && {
+        username: {
+          contains: username,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      }),
+      role: role || ERole.USER,
+      deletedAt: null,
+    };
+
+    const [accounts, total] = await this.prisma.$transaction([
+      this.prisma.account.findMany({
+        ...(limit &&
+          page && {
+            take,
+            skip,
+          }),
+        where,
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: {
+            select: {
+              companies: { where: { deletedAt: null } },
+            },
+          },
+        },
+        orderBy: { [sortField]: sortDirection },
+      }),
+      this.prisma.account.count({ where }),
+    ]);
+
+    return [accounts, total];
   }
 
   public async findAccountById(id: number) {
@@ -67,18 +129,32 @@ export class AccountService {
 
   public async updateAccount(
     accountId: number,
-    data: UpdateAccountDto | UpdateAccountRoleDto,
+    data: UpdateAccountDto,
+    adminId?: number,
   ) {
-    const account = await this.prisma.account.findFirstOrThrow({
+    const targetAccount = await this.prisma.account.findUniqueOrThrow({
       where: { id: accountId },
     });
 
-    await this.prisma.account.update({
-      where: { id: account.id },
-      data,
+    if (adminId && adminId !== accountId) {
+      const admin = await this.prisma.account.findFirstOrThrow({
+        where: { id: adminId },
+      });
+
+      if (admin.role !== ERole.ADMIN && admin.role !== ERole.SUPERADMIN) {
+        throw new ForbiddenException('Insufficient permissions');
+      }
+    }
+
+    const updated = await this.prisma.account.update({
+      where: { id: targetAccount.id },
+      data: pickRequiredFields<UpdateAccountDto>(
+        data,
+        UPDATE_ACCOUNT_REQUIRED_FIELDS,
+      ),
     });
 
-    return this.findAccountById(account.id);
+    return updated;
   }
 
   public async updateAccountPassword(
@@ -130,5 +206,27 @@ export class AccountService {
       where: { email },
     });
     return !!existingAccount;
+  }
+
+  public async removeAccountAvatar(accountId: number) {
+    const company = await this.prisma.account.findFirstOrThrow({
+      where: { id: accountId },
+    });
+
+    if (company.avatarUrl) {
+      if (company.avatarUrl) {
+        const oldFilename = company.avatarUrl.split('/').pop();
+        const oldFilePath = path.join(
+          process.cwd(),
+          'uploads',
+          'avatars',
+          oldFilename,
+        );
+
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+    }
   }
 }

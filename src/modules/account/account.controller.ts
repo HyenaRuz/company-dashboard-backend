@@ -2,8 +2,10 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Put,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -19,6 +21,7 @@ import { Roles } from 'src/decorator/roles.decorator';
 import { ERole } from 'src/enums/role.enum';
 import { UpdateAccountPasswordDto } from './dto/update-account-password.dto';
 import { createUploadInterceptor } from '../helpers/upload.interceptor';
+import { SearchAccountDto } from './dto/serch-account.dto';
 
 @ApiTags('Account')
 @Controller('account')
@@ -26,21 +29,31 @@ export class AccounController {
   constructor(private accountService: AccountService) {}
 
   @UseGuards(AccessTokenGuard)
-  @Get('/me')
+  @Get()
   async getAccountById(@Req() req: TRequest) {
-    return this.accountService.findAccountById(req.user.id);
+    return this.accountService.findAccountById(+req.user.id);
   }
 
   @UseGuards(AccessTokenGuard)
-  @Put('/me')
+  @Put()
   @UseInterceptors(createUploadInterceptor('avatar', './uploads/avatars'))
   async updateAccount(
     @Req() req: TRequest,
     @Body() body: UpdateAccountDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
+    if (body.avatarRemoved) {
+      await this.accountService.removeAccountAvatar(req.user.id);
+      body.avatarUrl = null;
+    }
+
     if (file) {
-      const avatarUrl = `/uploads/avatars/${file.filename}`;
+      const host = req.get('host');
+      const protocol = req.protocol;
+
+      await this.accountService.removeAccountAvatar(req.user.id);
+
+      const avatarUrl = `${protocol}://${host}/uploads/avatars/${file.filename}`;
       body.avatarUrl = avatarUrl;
     }
 
@@ -57,6 +70,18 @@ export class AccounController {
   }
 
   @UseGuards(AccessTokenGuard)
+  @Roles(ERole.SUPERADMIN, ERole.ADMIN)
+  @Put('/admin/:id')
+  async updateUserAsAdmin(
+    @Param('id') id: number,
+    @Body() body: UpdateAccountDto,
+    @Req() req: TRequest,
+  ) {
+    console.log('body', body);
+    return this.accountService.updateAccount(+id, body, +req.user.id);
+  }
+
+  @UseGuards(AccessTokenGuard)
   @Roles(ERole.SUPERADMIN)
   @Put('/role')
   async updateAccountRole(
@@ -69,8 +94,8 @@ export class AccounController {
   @UseGuards(AccessTokenGuard)
   @Roles(ERole.SUPERADMIN, ERole.ADMIN)
   @Get('/all-accounts')
-  async getAllAccounts() {
-    return this.accountService.findAllAccounts();
+  async getAllAccounts(@Query() params: SearchAccountDto) {
+    return this.accountService.findAllAccounts(params);
   }
 
   @Post('check-email')

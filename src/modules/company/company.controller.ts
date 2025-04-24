@@ -24,6 +24,8 @@ import { SearchCompanyDto } from './dto/serch-company.dto';
 import { Roles } from 'src/decorator/roles.decorator';
 import { ERole } from 'src/enums/role.enum';
 import { createUploadInterceptor } from '../helpers/upload.interceptor';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @UseGuards(AccessTokenGuard)
 @ApiTags('Company')
@@ -39,7 +41,9 @@ export class CompanyController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (file) {
-      const logoUrl = `/uploads/avatars/${file.filename}`;
+      const host = req.get('host');
+      const protocol = req.protocol;
+      const logoUrl = `${protocol}://${host}/uploads/logo/${file.filename}`;
       body.logoUrl = logoUrl;
     }
 
@@ -54,8 +58,18 @@ export class CompanyController {
     @Param('id') id: string,
     @UploadedFile() file?: Express.Multer.File,
   ) {
+    if (body.logoRemoved) {
+      await this.companyService.removeCompanyLogo(req.user.id, +id);
+      body.logoUrl = null;
+    }
+
     if (file) {
-      const logoUrl = `/uploads/avatars/${file.filename}`;
+      const host = req.get('host');
+      const protocol = req.protocol;
+
+      await this.companyService.removeCompanyLogo(req.user.id, +id);
+
+      const logoUrl = `${protocol}://${host}/uploads/logo/${file.filename}`;
       body.logoUrl = logoUrl;
     }
 

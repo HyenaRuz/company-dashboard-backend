@@ -1,6 +1,10 @@
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateAccountDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
   @IsString()
   @IsOptional()
   email?: string;
@@ -17,4 +21,8 @@ export class UpdateAccountDto {
   @IsString()
   @IsOptional()
   role?: string;
+
+  @IsString()
+  @IsOptional()
+  avatarRemoved?: boolean;
 }

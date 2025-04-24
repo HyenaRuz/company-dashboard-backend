@@ -12,6 +12,9 @@ export class SignupDto {
   password: string;
 
   @IsString()
+  repeatPassword: string;
+
+  @IsString()
   @IsOptional()
   avatarUrl?: string;
 }

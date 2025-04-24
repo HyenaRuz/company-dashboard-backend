@@ -112,7 +112,7 @@ export class AuthService {
       throw new BadRequestException('Account already exists');
     }
 
-    const { password, ...createUserPayoad } = payload;
+    const { password, repeatPassword, ...createUserPayoad } = payload;
 
     const hashedPassword = await this.hashPassword(password);
 

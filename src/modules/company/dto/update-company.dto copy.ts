@@ -1,4 +1,6 @@
+import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -17,6 +19,7 @@ export class UpdateCompanyDto {
   @IsOptional()
   service?: string;
 
+  @Transform(({ value }) => parseFloat(value))
   @IsNumber()
   @IsOptional()
   capital?: number;
@@ -24,4 +27,9 @@ export class UpdateCompanyDto {
   @IsOptional()
   @IsUrl()
   logoUrl?: string;
+
+  @Transform(({ value }) => value === 'true')
+  @IsOptional()
+  @IsBoolean()
+  logoRemoved?: boolean;
 }
