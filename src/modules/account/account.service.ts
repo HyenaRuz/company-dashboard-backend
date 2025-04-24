@@ -87,6 +87,7 @@ export class AccountService {
           role: true,
           createdAt: true,
           updatedAt: true,
+          avatarUrl: true,
           _count: {
             select: {
               companies: { where: { deletedAt: null } },
