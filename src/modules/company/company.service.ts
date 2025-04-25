@@ -146,11 +146,26 @@ export class CompanyService {
   }
 
   public async searchCompany(params: SearchCompanyDto, accountId?: number) {
-    const { name, page, limit, sortDirection, sortField, allCompanies } =
-      params || {};
+    const {
+      name,
+      page,
+      limit,
+      sortDirection,
+      sortField,
+      allCompanies,
+      account,
+    } = params || {};
 
     const take = +limit;
     const skip = (+page - 1) * take;
+
+    const order = () => {
+      if (sortField === 'account') {
+        return { account: { email: sortDirection } };
+      } else {
+        return { [sortField]: sortDirection };
+      }
+    };
 
     const where: Prisma.CompanyWhereInput = {
       ...(accountId && { accountId }),
@@ -161,13 +176,22 @@ export class CompanyService {
         },
       }),
       ...(accountId && { deletedAt: null }),
+      ...(account && {
+        account: {
+          email: {
+            contains: account,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        },
+      }),
     };
 
     const [companies, total] = await this.prisma.$transaction([
       this.prisma.company.findMany({
         ...(!allCompanies && { take, skip }),
         where,
-        orderBy: { [sortField]: sortDirection },
+        orderBy: order(),
+
         include: {
           account: true,
         },

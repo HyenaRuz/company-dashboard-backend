@@ -113,6 +113,8 @@ export class AccounController {
   @Roles(ERole.SUPERADMIN, ERole.ADMIN)
   @Get('/all-accounts')
   async getAllAccounts(@Query() params: SearchAccountDto) {
+    console.log('params', params);
+
     return this.accountService.findAllAccounts(params);
   }
 

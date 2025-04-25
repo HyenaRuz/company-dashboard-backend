@@ -99,8 +99,6 @@ export class CompanyController {
   async getCompany(@Req() req: TRequest, @Param('id') id: string) {
     const company = await this.companyService.getCompanyById(+id);
 
-    console.log('company', company);
-
     const isOwner = company.accountId === req.user.id;
     const isAdmin =
       req.user.role === ERole.ADMIN || req.user.role === ERole.SUPERADMIN;

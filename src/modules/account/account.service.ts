@@ -71,6 +71,14 @@ export class AccountService {
       role: role || ERole.USER,
     };
 
+    const order = () => {
+      if (sortField === '_count') {
+        return { companies: { _count: sortDirection } };
+      } else {
+        return { [sortField]: sortDirection };
+      }
+    };
+
     const [accounts, total] = await this.prisma.$transaction([
       this.prisma.account.findMany({
         ...(limit &&
@@ -94,7 +102,7 @@ export class AccountService {
             },
           },
         },
-        orderBy: { [sortField]: sortDirection },
+        orderBy: order(),
       }),
       this.prisma.account.count({ where }),
     ]);

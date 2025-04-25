@@ -6,6 +6,10 @@ export class SearchCompanyDto {
   @IsOptional()
   name?: '' | string;
 
+  @IsString()
+  @IsOptional()
+  account?: '' | string;
+
   @IsInt()
   @IsOptional()
   @Type(() => Number)
