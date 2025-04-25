@@ -69,7 +69,6 @@ export class AccountService {
         },
       }),
       role: role || ERole.USER,
-      deletedAt: null,
     };
 
     const [accounts, total] = await this.prisma.$transaction([
@@ -88,6 +87,7 @@ export class AccountService {
           createdAt: true,
           updatedAt: true,
           avatarUrl: true,
+          deletedAt: true,
           _count: {
             select: {
               companies: { where: { deletedAt: null } },
@@ -112,6 +112,7 @@ export class AccountService {
         role: true,
         avatarUrl: true,
         createdAt: true,
+        deletedAt: true,
       },
     });
 

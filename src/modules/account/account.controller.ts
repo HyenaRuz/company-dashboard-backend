@@ -57,6 +57,8 @@ export class AccounController {
       body.avatarUrl = avatarUrl;
     }
 
+    console.log('body', body);
+
     return this.accountService.updateAccount(req.user.id, body);
   }
 
@@ -72,12 +74,28 @@ export class AccounController {
   @UseGuards(AccessTokenGuard)
   @Roles(ERole.SUPERADMIN, ERole.ADMIN)
   @Put('/admin/:id')
+  @UseInterceptors(createUploadInterceptor('avatar', './uploads/avatars'))
   async updateUserAsAdmin(
     @Param('id') id: number,
     @Body() body: UpdateAccountDto,
     @Req() req: TRequest,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    console.log('body', body);
+    if (body?.avatarRemoved) {
+      await this.accountService.removeAccountAvatar(body.id);
+      body.avatarUrl = null;
+    }
+
+    if (file) {
+      const host = req.get('host');
+      const protocol = req.protocol;
+
+      await this.accountService.removeAccountAvatar(body.id);
+
+      const avatarUrl = `${protocol}://${host}/uploads/avatars/${file.filename}`;
+      body.avatarUrl = avatarUrl;
+    }
+
     return this.accountService.updateAccount(+id, body, +req.user.id);
   }
 
@@ -101,5 +119,12 @@ export class AccounController {
   @Post('check-email')
   async checkEmail(@Body() body: { email: string }) {
     return this.accountService.checkEmail(body.email);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Roles(ERole.SUPERADMIN, ERole.ADMIN)
+  @Get(':id')
+  async getAccountByIdAdmin(@Param('id') id: string) {
+    return this.accountService.findAccountById(+id);
   }
 }

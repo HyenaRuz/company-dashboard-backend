@@ -17,7 +17,6 @@ import {
   pickRequiredFields,
   UPDATE_COMPANY_REQUIRED_FIELDS,
 } from '../helpers/pickRequiredFields';
-import { TCompany } from './company.types';
 
 @Injectable()
 export class CompanyService {
@@ -123,7 +122,26 @@ export class CompanyService {
 
   public async getCompanyById(companyId: number) {
     return await this.prisma.company.findUnique({
-      where: { id: companyId, deletedAt: null },
+      where: { id: companyId },
+      include: {
+        account: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+            avatarUrl: true,
+            deletedAt: true,
+            _count: {
+              select: {
+                companies: { where: { deletedAt: null } },
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -150,6 +168,9 @@ export class CompanyService {
         ...(!allCompanies && { take, skip }),
         where,
         orderBy: { [sortField]: sortDirection },
+        include: {
+          account: true,
+        },
       }),
       this.prisma.company.count({ where }),
     ]);
