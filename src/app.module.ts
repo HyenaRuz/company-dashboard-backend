@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AccountModule } from './modules/account/account.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -8,6 +8,8 @@ import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { JwtService } from '@nestjs/jwt';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { HistoryMiddleware } from './middlewares/history-middleware';
+import { HistoryModule } from './modules/history/history.module';
 
 @Module({
   imports: [
@@ -16,13 +18,18 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
       serveStaticOptions: {
-        index: false, 
+        index: false,
       },
     }),
     AccountModule,
     AuthModule,
     CompanyModule,
+    HistoryModule,
   ],
   providers: [AccessTokenStrategy, RefreshTokenStrategy, JwtService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HistoryMiddleware).forRoutes('*');
+  }
+}

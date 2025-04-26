@@ -18,6 +18,8 @@ model Account {
   avatarUrl                 String? 
   role                      String        @default("user")
   companies                 Company[] 
+  actingHistories           History[]     @relation("ActingAccount")
+  targetHistories           History[]     @relation("TargetAccount")
   historyLogs               History[]
 }
 
@@ -31,16 +33,26 @@ model Company {
   capital                   Float
   logoUrl                   String?
   accountId                 Int
-  account                   Account          @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  account                   Account        @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  historyLogs               History[]
 }
 
 model History {
   id                        Int           @id() @default(autoincrement())
   createdAt                 DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt                 DateTime      @updatedAt
-  deletedAt                 DateTime?     @db.Timestamptz(6)
-  action                    String
-  entity                    String?
-  accountId                 Int
-  account                   Account          @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  actingAccountId           Int
+  targetAccountId           Int?
+
+  objectCompanyId           Int?
+  objectAccountId           Int?
+
+  objectType                String
+  ip                        String
+
+  actingAccount             Account       @relation("ActingAccount", fields: [actingAccountId], references: [id])
+  targetAccount             Account?      @relation("TargetAccount", fields: [targetAccountId], references: [id])
+
+  objectCompany             Company?      @relation(fields: [objectCompanyId], references: [id])
+  objectAccount             Account?      @relation(fields: [objectAccountId], references: [id])
 }

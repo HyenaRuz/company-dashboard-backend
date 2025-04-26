@@ -119,6 +119,26 @@ export class CompanyService {
       },
     });
   }
+  public async recoverCompany(accountId: number, companyId: number) {
+    const company = await this.prisma.company.findFirstOrThrow({
+      where: {
+        id: companyId,
+        accountId,
+        deletedAt: { not: null },
+      },
+    });
+
+    if (!company) {
+      throw new BadRequestException('Company not found');
+    }
+
+    return await this.prisma.company.update({
+      where: { id: company.id },
+      data: {
+        deletedAt: null,
+      },
+    });
+  }
 
   public async getCompanyById(companyId: number) {
     return await this.prisma.company.findUnique({

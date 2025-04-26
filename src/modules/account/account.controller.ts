@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -56,8 +58,6 @@ export class AccounController {
       const avatarUrl = `${protocol}://${host}/uploads/avatars/${file.filename}`;
       body.avatarUrl = avatarUrl;
     }
-
-    console.log('body', body);
 
     return this.accountService.updateAccount(req.user.id, body);
   }
@@ -113,8 +113,6 @@ export class AccounController {
   @Roles(ERole.SUPERADMIN, ERole.ADMIN)
   @Get('/all-accounts')
   async getAllAccounts(@Query() params: SearchAccountDto) {
-    console.log('params', params);
-
     return this.accountService.findAllAccounts(params);
   }
 
@@ -128,5 +126,19 @@ export class AccounController {
   @Get(':id')
   async getAccountByIdAdmin(@Param('id') id: string) {
     return this.accountService.findAccountById(+id);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Roles(ERole.SUPERADMIN, ERole.ADMIN)
+  @Delete(':id')
+  async deleteAccount(@Param('id') id: string) {
+    return this.accountService.deleteAccount(+id);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Roles(ERole.SUPERADMIN, ERole.ADMIN)
+  @Patch(':id/recover')
+  async recoverAccount(@Param('id') id: string) {
+    return this.accountService.recoverAccount(+id);
   }
 }

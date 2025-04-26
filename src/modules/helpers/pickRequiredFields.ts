@@ -11,7 +11,6 @@ const UPDATE_ACCOUNT_REQUIRED_FIELDS = [
   'email',
   'avatarUrl',
   'role',
-  'deletedAt',
 ];
 
 const pickRequiredFields = <T>(

@@ -158,10 +158,12 @@ export class AccountService {
 
     const updated = await this.prisma.account.update({
       where: { id: targetAccount.id },
-      data: pickRequiredFields<UpdateAccountDto>(
-        data,
-        UPDATE_ACCOUNT_REQUIRED_FIELDS,
-      ),
+      data: {
+        ...pickRequiredFields<UpdateAccountDto>(
+          data,
+          UPDATE_ACCOUNT_REQUIRED_FIELDS,
+        ),
+      },
     });
 
     return updated;
@@ -238,5 +240,44 @@ export class AccountService {
         }
       }
     }
+  }
+
+  public async deleteAccount(accountId: number) {
+    const account = await this.prisma.account.findFirstOrThrow({
+      where: {
+        id: accountId,
+        deletedAt: null,
+      },
+    });
+
+    if (!account) {
+      throw new BadRequestException('Account not found');
+    }
+
+    return await this.prisma.account.update({
+      where: { id: account.id },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+  }
+  public async recoverAccount(accountId: number) {
+    const account = await this.prisma.account.findFirstOrThrow({
+      where: {
+        id: accountId,
+        deletedAt: { not: null },
+      },
+    });
+
+    if (!account) {
+      throw new BadRequestException('Account not found');
+    }
+
+    return await this.prisma.account.update({
+      where: { id: account.id },
+      data: {
+        deletedAt: null,
+      },
+    });
   }
 }

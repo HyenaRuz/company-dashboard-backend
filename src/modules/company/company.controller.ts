@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -24,8 +25,6 @@ import { SearchCompanyDto } from './dto/serch-company.dto';
 import { Roles } from 'src/decorator/roles.decorator';
 import { ERole } from 'src/enums/role.enum';
 import { createUploadInterceptor } from '../helpers/upload.interceptor';
-import * as fs from 'fs';
-import * as path from 'path';
 
 @UseGuards(AccessTokenGuard)
 @ApiTags('Company')
@@ -79,6 +78,12 @@ export class CompanyController {
   @Delete(':id')
   async deleteCompany(@Req() req: TRequest, @Param('id') id: string) {
     return this.companyService.deleteCompany(req.user.id, +id);
+  }
+
+  @Roles(ERole.ADMIN, ERole.SUPERADMIN)
+  @Patch(':id/recover')
+  async recoverCompany(@Req() req: TRequest, @Param('id') id: string) {
+    return this.companyService.recoverCompany(req.user.id, +id);
   }
 
   @Get()
