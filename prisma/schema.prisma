@@ -40,19 +40,15 @@ model Company {
 model History {
   id                        Int           @id() @default(autoincrement())
   createdAt                 DateTime      @default(now()) @db.Timestamptz(6)
-
   actingAccountId           Int
   targetAccountId           Int?
-
   objectCompanyId           Int?
   objectAccountId           Int?
-
   objectType                String
   ip                        String
-
+  
   actingAccount             Account       @relation("ActingAccount", fields: [actingAccountId], references: [id])
   targetAccount             Account?      @relation("TargetAccount", fields: [targetAccountId], references: [id])
-
   objectCompany             Company?      @relation(fields: [objectCompanyId], references: [id])
   objectAccount             Account?      @relation(fields: [objectAccountId], references: [id])
 }

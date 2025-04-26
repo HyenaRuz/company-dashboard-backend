@@ -99,11 +99,10 @@ export class CompanyService {
     return await this.getCompanyById(company.id);
   }
 
-  public async deleteCompany(accountId: number, companyId: number) {
+  public async deleteCompany(companyId: number) {
     const company = await this.prisma.company.findFirstOrThrow({
       where: {
         id: companyId,
-        accountId,
         deletedAt: null,
       },
     });
@@ -119,11 +118,10 @@ export class CompanyService {
       },
     });
   }
-  public async recoverCompany(accountId: number, companyId: number) {
+  public async recoverCompany(companyId: number) {
     const company = await this.prisma.company.findFirstOrThrow({
       where: {
         id: companyId,
-        accountId,
         deletedAt: { not: null },
       },
     });
@@ -161,6 +159,7 @@ export class CompanyService {
             },
           },
         },
+        historyLogs: true,
       },
     });
   }

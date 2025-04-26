@@ -121,6 +121,9 @@ export class AccountService {
         avatarUrl: true,
         createdAt: true,
         deletedAt: true,
+        historyLogs: true,
+        actingHistories: true,
+        targetHistories: true,
       },
     });
 

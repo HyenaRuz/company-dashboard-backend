@@ -77,13 +77,23 @@ export class CompanyController {
 
   @Delete(':id')
   async deleteCompany(@Req() req: TRequest, @Param('id') id: string) {
-    return this.companyService.deleteCompany(req.user.id, +id);
+    const company = await this.companyService.deleteCompany(+id);
+
+    const isOwner = company.accountId === req.user.id;
+    const isAdmin =
+      req.user.role === ERole.ADMIN || req.user.role === ERole.SUPERADMIN;
+
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException('You are not the owner or admin');
+    }
+
+    return company;
   }
 
   @Roles(ERole.ADMIN, ERole.SUPERADMIN)
   @Patch(':id/recover')
   async recoverCompany(@Req() req: TRequest, @Param('id') id: string) {
-    return this.companyService.recoverCompany(req.user.id, +id);
+    return this.companyService.recoverCompany(+id);
   }
 
   @Get()
