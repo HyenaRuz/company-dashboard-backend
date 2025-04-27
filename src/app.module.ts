@@ -11,6 +11,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { HistoryMiddleware } from './middlewares/history-middleware';
 import { HistoryModule } from './modules/history/history.module';
 
+import { EmailModule } from './modules/email/email.module';
+import { CacheModule } from './modules/cache/cache.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -25,6 +28,8 @@ import { HistoryModule } from './modules/history/history.module';
     AuthModule,
     CompanyModule,
     HistoryModule,
+    CacheModule,
+    EmailModule,
   ],
   providers: [AccessTokenStrategy, RefreshTokenStrategy, JwtService],
 })

@@ -140,6 +140,10 @@ export class AccountService {
     };
   }
 
+  public async findAccountByEmail(email: string) {
+    return this.prisma.account.findFirst({ where: { email } });
+  }
+
   public async updateAccount(
     accountId: number,
     data: UpdateAccountDto,
