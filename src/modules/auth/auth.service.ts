@@ -175,7 +175,7 @@ export class AuthService {
   async sendResetPassword(email: string) {
     const token = randomUUID();
 
-    await this.cacheService.setPasswordResetToken(email, token, 10 * 60 * 1000); // 10 minutes
+    await this.cacheService.setPasswordResetToken(token, email, 10 * 60 * 1000); // 10 minutes
 
     const info = await this.emailService.sendResetPasswordEmail({
       email,
