@@ -111,7 +111,7 @@ export class AccountService {
   }
 
   public async findAccountById(id: number) {
-    const account = await this.prisma.account.findUnique({
+    const account = await this.prisma.account.findFirst({
       where: { id },
       select: {
         id: true,
@@ -201,12 +201,10 @@ export class AccountService {
       salt: Buffer.from(process.env.PASSWORD_SALT),
     });
 
-    await this.prisma.account.update({
+    return this.prisma.account.update({
       where: { id: account.id },
       data: { hashedPassword },
     });
-
-    return { message: 'Password updated successfully' };
   }
 
   public async getTotalAccountCount() {

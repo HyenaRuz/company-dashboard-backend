@@ -58,8 +58,15 @@ export class AccounController {
       const avatarUrl = `${protocol}://${host}/uploads/avatars/${file.filename}`;
       body.avatarUrl = avatarUrl;
     }
+    const account = await this.accountService.updateAccount(req.user.id, body);
 
-    return this.accountService.updateAccount(req.user.id, body);
+    req.createdEntity = {
+      id: account.id,
+      type: 'account',
+      ownerId: req.user.id,
+    };
+
+    return account;
   }
 
   @UseGuards(AccessTokenGuard)
@@ -68,7 +75,18 @@ export class AccounController {
     @Req() req: TRequest,
     @Body() body: UpdateAccountPasswordDto,
   ) {
-    return this.accountService.updateAccountPassword(req.user.id, body);
+    const account = await this.accountService.updateAccountPassword(
+      req.user.id,
+      body,
+    );
+
+    req.createdEntity = {
+      id: account.id,
+      type: 'account',
+      ownerId: req.user.id,
+    };
+
+    return account;
   }
 
   @UseGuards(AccessTokenGuard)
@@ -106,7 +124,9 @@ export class AccounController {
     @Req() req: TRequest,
     @Body() body: UpdateAccountRoleDto,
   ) {
-    return this.accountService.updateAccount(req.user.id, body);
+    const account = await this.accountService.updateAccount(req.user.id, body);
+
+    return account;
   }
 
   @UseGuards(AccessTokenGuard)

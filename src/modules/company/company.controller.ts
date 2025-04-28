@@ -45,8 +45,15 @@ export class CompanyController {
       const logoUrl = `${protocol}://${host}/uploads/logo/${file.filename}`;
       body.logoUrl = logoUrl;
     }
+    const company = await this.companyService.createCompany(req.user.id, body);
 
-    return this.companyService.createCompany(req.user.id, body);
+    req.createdEntity = {
+      id: company.id,
+      type: 'company',
+      ownerId: req.user.id,
+    };
+
+    return company;
   }
 
   @Put(':id')

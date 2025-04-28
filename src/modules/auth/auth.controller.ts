@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Req,
   UploadedFile,
   UseGuards,
@@ -69,7 +70,7 @@ export class AuthController {
     return { message: 'Password reset email sent', previewUrl };
   }
 
-  @Post('reset-password')
+  @Put('reset-password')
   async resetPassword(
     @Body()
     data: ResetPasswordDto,

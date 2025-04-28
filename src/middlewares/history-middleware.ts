@@ -40,7 +40,9 @@ export class HistoryMiddleware implements NestMiddleware {
           res.statusCode >= 200 &&
           res.statusCode < 300
         ) {
-          const entityInfo = await this.resolveEntity(url);
+          const entityInfo = req.createdEntity.id
+            ? req.createdEntity
+            : await this.resolveEntity(url);
 
           await this.historyService.createHistory({
             actingAccountId: actingAccount?.id,

@@ -33,9 +33,6 @@ export class EmailService {
     email: string;
     code: string | number;
   }) => {
-    console.info(
-      `[Send email verification code]: email: ${email}; code: ${code}`,
-    );
     const info = this.send({
       to: email,
       subject: `Game Price Pulse email verification`,
