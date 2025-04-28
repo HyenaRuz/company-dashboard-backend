@@ -101,13 +101,14 @@ export class CompanyController {
     @Req() req: TRequest,
     @Query() params: SearchCompanyDto,
   ) {
-    return this.companyService.searchCompany(params, req.user.id);
-  }
+    const isAdmin = [ERole.ADMIN, ERole.SUPERADMIN].includes(
+      req.user.role as ERole,
+    );
 
-  @Roles(ERole.ADMIN, ERole.SUPERADMIN)
-  @Get('/all')
-  async findAllCompaniesByCriteria(@Query() params: SearchCompanyDto) {
-    return this.companyService.searchCompany(params);
+    return this.companyService.searchCompany(
+      params,
+      isAdmin ? null : req.user.id,
+    );
   }
 
   @Get(':id')
