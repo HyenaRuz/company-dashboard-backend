@@ -13,7 +13,7 @@ import argon from 'argon2';
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { SearchAccountDto } from './dto/serch-account.dto';
+import { SearchAccountDto } from './dto/search-account.dto';
 import {
   pickRequiredFields,
   UPDATE_ACCOUNT_REQUIRED_FIELDS,
@@ -111,7 +111,7 @@ export class AccountService {
   }
 
   public async findAccountById(id: number) {
-    const account = await this.prisma.account.findUnique({
+    const account = await this.prisma.account.findFirst({
       where: { id },
       select: {
         id: true,
@@ -138,6 +138,10 @@ export class AccountService {
       ...account,
       companiesCount: activeCompanyCount,
     };
+  }
+
+  public async findAccountByEmail(email: string) {
+    return this.prisma.account.findFirst({ where: { email } });
   }
 
   public async updateAccount(
@@ -197,12 +201,10 @@ export class AccountService {
       salt: Buffer.from(process.env.PASSWORD_SALT),
     });
 
-    await this.prisma.account.update({
+    return this.prisma.account.update({
       where: { id: account.id },
       data: { hashedPassword },
     });
-
-    return { message: 'Password updated successfully' };
   }
 
   public async getTotalAccountCount() {

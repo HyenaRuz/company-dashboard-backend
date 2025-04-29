@@ -46,9 +46,14 @@ model History {
   objectAccountId           Int?
   objectType                String
   ip                        String
-  
+
   actingAccount             Account       @relation("ActingAccount", fields: [actingAccountId], references: [id])
   targetAccount             Account?      @relation("TargetAccount", fields: [targetAccountId], references: [id])
   objectCompany             Company?      @relation(fields: [objectCompanyId], references: [id])
   objectAccount             Account?      @relation(fields: [objectAccountId], references: [id])
+}
+
+model cache {
+  key                   String          @id() @db.VarChar
+  value                 String          @db.Text
 }

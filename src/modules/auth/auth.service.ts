@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
@@ -11,6 +12,11 @@ import argon from 'argon2';
 import { LoginDto } from './dto/login.dto';
 import { AccountService } from '../account/account.service';
 import { ERole } from 'src/enums/role.enum';
+import { CacheService } from '../cache/cache.service';
+import { EmailService } from '../email/email.service';
+import { getRandomIntInRange } from '../helpers/getRandomIntInRange';
+import { randomUUID } from 'crypto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 type TTokenPayload = {
   id: number;
@@ -35,6 +41,8 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private accountService: AccountService,
+    private cacheService: CacheService,
+    private emailService: EmailService,
   ) {}
 
   private getTokenPayload({ id, username, role }: TTokenPayload) {
@@ -147,5 +155,58 @@ export class AuthService {
       role: existingAccount.role as ERole,
     });
     return { tokens, user: existingAccount };
+  }
+
+  public async sendEmailVerificationCode(email: string) {
+    const code = getRandomIntInRange(1000, 9999).toString();
+    await this.cacheService.setEmailVerificationCode(
+      email,
+      code,
+      10 * 60 * 1000, // 10 minutes
+    );
+
+    const info = await this.emailService.sendEmailVerificationCode({
+      email,
+      code,
+    });
+    return info;
+  }
+
+  async sendResetPassword(email: string) {
+    const token = randomUUID();
+
+    await this.cacheService.setPasswordResetToken(token, email, 10 * 60 * 1000); // 10 minutes
+
+    const info = await this.emailService.sendResetPasswordEmail({
+      email,
+      token,
+    });
+
+    return info;
+  }
+
+  async resetPassword(data: ResetPasswordDto) {
+    const email = await this.cacheService.getPasswordResetEmail(data.token);
+
+    if (!email) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+
+    const user = await this.accountService.findAccountByEmail(email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (data.newPassword !== data.confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    user.hashedPassword = await this.hashPassword(data.newPassword);
+    await this.prisma.account.update({
+      where: { id: user.id },
+      data: { hashedPassword: user.hashedPassword },
+    });
+
+    await this.cacheService.deletePasswordResetToken(data.token);
   }
 }

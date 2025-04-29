@@ -45,8 +45,15 @@ export class CompanyController {
       const logoUrl = `${protocol}://${host}/uploads/logo/${file.filename}`;
       body.logoUrl = logoUrl;
     }
+    const company = await this.companyService.createCompany(req.user.id, body);
 
-    return this.companyService.createCompany(req.user.id, body);
+    req.createdEntity = {
+      id: company.id,
+      type: 'company',
+      ownerId: req.user.id,
+    };
+
+    return company;
   }
 
   @Put(':id')
@@ -82,6 +89,12 @@ export class CompanyController {
     const isOwner = company.accountId === req.user.id;
     const isAdmin =
       req.user.role === ERole.ADMIN || req.user.role === ERole.SUPERADMIN;
+
+    req.createdEntity = {
+      id: company.id,
+      type: 'company',
+      ownerId: req.user.id,
+    };
 
     if (!isOwner && !isAdmin) {
       throw new ForbiddenException('You are not the owner or admin');

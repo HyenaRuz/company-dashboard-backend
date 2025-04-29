@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Req,
   UploadedFile,
   UseGuards,
@@ -15,6 +16,8 @@ import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { TRequest } from 'src/types/request.types';
 import { createUploadInterceptor } from '../helpers/upload.interceptor';
+import * as nodemailer from 'nodemailer';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -47,5 +50,33 @@ export class AuthController {
       req.user.id,
       req.user.refreshToken,
     );
+  }
+
+  @Post('check-email')
+  async checkEmail(@Body('email') email: string) {
+    const info = await this.authService.sendEmailVerificationCode(email);
+
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+
+    return { message: 'Verification email sent', previewUrl };
+  }
+
+  @Post('reset-password-request')
+  async requestPasswordReset(@Body('email') email: string) {
+    const info = await this.authService.sendResetPassword(email);
+
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+
+    return { message: 'Password reset email sent', previewUrl };
+  }
+
+  @Put('reset-password')
+  async resetPassword(
+    @Body()
+    data: ResetPasswordDto,
+  ) {
+    await this.authService.resetPassword(data);
+
+    return { message: 'Password reset successful' };
   }
 }

@@ -35,23 +35,29 @@ export class HistoryMiddleware implements NestMiddleware {
       const ip = req.ip;
 
       res.on('finish', async () => {
-        if (
-          trackedMethods.includes(method) &&
-          res.statusCode >= 200 &&
-          res.statusCode < 300
-        ) {
-          const entityInfo = await this.resolveEntity(url);
+        try {
+          if (
+            trackedMethods.includes(method) &&
+            res.statusCode >= 200 &&
+            res.statusCode < 300
+          ) {
+            const entityInfo = req.createdEntity?.id
+              ? req.createdEntity
+              : await this.resolveEntity(url);
 
-          await this.historyService.createHistory({
-            actingAccountId: actingAccount?.id,
-            targetAccountId: entityInfo?.ownerId,
-            objectCompanyId:
-              entityInfo?.type === 'company' ? entityInfo.id : undefined,
-            objectAccountId:
-              entityInfo?.type === 'account' ? entityInfo.id : undefined,
-            objectType: this.mapMethodToAction(method, url),
-            ip,
-          });
+            await this.historyService.createHistory({
+              actingAccountId: actingAccount?.id,
+              targetAccountId: entityInfo?.ownerId,
+              objectCompanyId:
+                entityInfo?.type === 'company' ? entityInfo.id : undefined,
+              objectAccountId:
+                entityInfo?.type === 'account' ? entityInfo.id : undefined,
+              objectType: this.mapMethodToAction(method, url),
+              ip,
+            });
+          }
+        } catch (error) {
+          console.error('[HistoryMiddleware] Failed to record history:', error);
         }
       });
 
