@@ -3,7 +3,8 @@
 /node_modules
 /build
 volumes
-uploads
+/uploads/*
+!/uploads/.gitkeep
 
 
 # Logs
