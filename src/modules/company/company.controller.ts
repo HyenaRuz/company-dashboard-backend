@@ -90,6 +90,12 @@ export class CompanyController {
     const isAdmin =
       req.user.role === ERole.ADMIN || req.user.role === ERole.SUPERADMIN;
 
+    req.createdEntity = {
+      id: company.id,
+      type: 'company',
+      ownerId: req.user.id,
+    };
+
     if (!isOwner && !isAdmin) {
       throw new ForbiddenException('You are not the owner or admin');
     }

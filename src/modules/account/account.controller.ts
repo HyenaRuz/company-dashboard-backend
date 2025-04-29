@@ -23,7 +23,7 @@ import { Roles } from 'src/decorator/roles.decorator';
 import { ERole } from 'src/enums/role.enum';
 import { UpdateAccountPasswordDto } from './dto/update-account-password.dto';
 import { createUploadInterceptor } from '../helpers/upload.interceptor';
-import { SearchAccountDto } from './dto/serch-account.dto';
+import { SearchAccountDto } from './dto/search-account.dto';
 
 @ApiTags('Account')
 @Controller('account')

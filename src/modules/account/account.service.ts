@@ -13,7 +13,7 @@ import argon from 'argon2';
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { SearchAccountDto } from './dto/serch-account.dto';
+import { SearchAccountDto } from './dto/search-account.dto';
 import {
   pickRequiredFields,
   UPDATE_ACCOUNT_REQUIRED_FIELDS,
