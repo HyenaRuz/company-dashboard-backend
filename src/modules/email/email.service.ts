@@ -35,7 +35,7 @@ export class EmailService {
   }) => {
     const info = this.send({
       to: email,
-      subject: `Game Price Pulse email verification`,
+      subject: `Email verification`,
       template: ETemplateName.EMAIL_VERIFICATION_CODE,
       context: {
         code,
@@ -60,7 +60,7 @@ export class EmailService {
 
     const info = this.send({
       to: email,
-      subject: `Game Price Pulse password reset`,
+      subject: `Password reset`,
       template: ETemplateName.EMAIL_RESET_PASSWORD,
       context: {
         resetLink,
