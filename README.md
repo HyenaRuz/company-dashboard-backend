@@ -104,5 +104,3 @@ Developed by Novruz Babaiev
 🌐 [babaiev-novruz.com](https://babaiev-novruz.com)
 
 ---
-
----
