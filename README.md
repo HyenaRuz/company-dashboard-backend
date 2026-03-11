@@ -106,5 +106,3 @@ Developed by Novruz Babaiev
 ---
 
 ---
-
----
